@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import AppLayout from "@/components/AppLayout";
 import { UserProfile, defaultProfile } from "@/lib/mockAi";
+import Card from "@/components/ui/Card";
 import { 
   Clock, 
   TrendingDown, 
@@ -87,7 +88,7 @@ export default function TimeMachine() {
         {/* Left Side: Controller and Simulation Scenery */}
         <div className="simulation-stack">
           {/* Card: Controller */}
-          <div className="glass-card controller-card">
+          <Card className="controller-card">
             <span className="card-pre">PREDICTIVE WORKBENCH</span>
             <h2>Carbon Time Machine</h2>
             <p>Drag sliders and toggle strategy configurations to project your climate impact.</p>
@@ -96,18 +97,21 @@ export default function TimeMachine() {
               <button 
                 className={`strategy-btn current ${strategy === "current" ? "active" : ""}`}
                 onClick={() => setStrategy("current")}
+                aria-pressed={strategy === "current"}
               >
                 <span>Current</span>
               </button>
               <button 
                 className={`strategy-btn small ${strategy === "small" ? "active" : ""}`}
                 onClick={() => setStrategy("small")}
+                aria-pressed={strategy === "small"}
               >
                 <span>Small Swaps</span>
               </button>
               <button 
                 className={`strategy-btn aggressive ${strategy === "aggressive" ? "active" : ""}`}
                 onClick={() => setStrategy("aggressive")}
+                aria-pressed={strategy === "aggressive"}
               >
                 <span>Aggressive</span>
               </button>
@@ -115,16 +119,20 @@ export default function TimeMachine() {
 
             <div className="input-group range-control">
               <div className="range-label-row">
-                <span className="input-label">Simulation Window</span>
+                <label htmlFor="sim-window-slider" className="input-label">Simulation Window</label>
                 <span className="range-val-lbl">{projectionYears} Years</span>
               </div>
               <input 
+                id="sim-window-slider"
                 type="range" 
                 min="1" 
                 max="15" 
                 value={projectionYears} 
                 onChange={(e) => setProjectionYears(Number(e.target.value))}
                 className="slider-input"
+                aria-valuemin={1}
+                aria-valuemax={15}
+                aria-valuenow={projectionYears}
               />
               <div className="timeline-ticks">
                 <span>1 Year</span>
@@ -133,7 +141,7 @@ export default function TimeMachine() {
                 <span>15 Years</span>
               </div>
             </div>
-          </div>
+          </Card>
 
           {/* Interactive Environment Scenery Screen */}
           <div className={`glass-card scenery-viewport ${activeStrategy.sceneryClass}`}>

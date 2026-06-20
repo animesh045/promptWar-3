@@ -1,11 +1,25 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { getGoogleAuth } from "@/lib/googleAuth";
+import { sanitizeString, validateAddress } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { origin, destination, transitMode, carbonSaved, moneySaved, cost, time, carbon } = body;
+
+    if (!validateAddress(origin) || !validateAddress(destination)) {
+      return NextResponse.json({ success: false, error: "Invalid origin or destination address." }, { status: 400 });
+    }
+
+    const safeOrigin = sanitizeString(origin);
+    const safeDestination = sanitizeString(destination);
+    const safeTransitMode = sanitizeString(transitMode);
+    const safeCarbonSaved = Number(carbonSaved) || 0;
+    const safeMoneySaved = Number(moneySaved) || 0;
+    const safeCost = Number(cost) || 0;
+    const safeTime = Number(time) || 0;
+    const safeCarbon = Number(carbon) || 0;
 
     const auth = getGoogleAuth([
       "https://www.googleapis.com/auth/documents",
@@ -55,16 +69,16 @@ export async function POST(request: Request) {
     const p3 = `Generated on: ${timestamp}\n\n`;
 
     const s1 = "1. Journey Overview\n";
-    const s1Content = `Origin Address: ${origin}\nDestination Address: ${destination}\nBaseline Mode: Auto/Cab Ride (Baseline)\n\n`;
+    const s1Content = `Origin Address: ${safeOrigin}\nDestination Address: ${safeDestination}\nBaseline Mode: Auto/Cab Ride (Baseline)\n\n`;
 
     const s2 = "2. Optimized Choice Details\n";
-    const s2Content = `Selected Transit Option: ${transitMode}\nDuration: ${time} minutes\nCarbon Footprint: ${carbon} kg CO2\nFare Cost: ₹${cost}\n\n`;
+    const s2Content = `Selected Transit Option: ${safeTransitMode}\nDuration: ${safeTime} minutes\nCarbon Footprint: ${safeCarbon} kg CO2\nFare Cost: ₹${safeCost}\n\n`;
 
     const s3 = "3. Ecological & Financial Impact\n";
-    const s3Content = `Carbon Saved vs Baseline: -${carbonSaved} kg CO2\nFinancial Savings vs Baseline: +₹${moneySaved}\nEquivalence: Charging a smartphone for ${Math.round(carbonSaved * 350)} days\n\n`;
+    const s3Content = `Carbon Saved vs Baseline: -${safeCarbonSaved} kg CO2\nFinancial Savings vs Baseline: +₹${safeMoneySaved}\nEquivalence: Charging a smartphone for ${Math.round(safeCarbonSaved * 350)} days\n\n`;
 
     const s4 = "4. Ecosystem Impact Summary & Narrative\n";
-    const s4Content = `By choosing ${transitMode} instead of the cab ride baseline, you reduce emissions by ${carbonSaved} kg CO2 and save ₹${moneySaved} on this journey. This active decision directly contributes to regional carbon neutral initiatives.\n`;
+    const s4Content = `By choosing ${safeTransitMode} instead of the cab ride baseline, you reduce emissions by ${safeCarbonSaved} kg CO2 and save ₹${safeMoneySaved} on this journey. This active decision directly contributes to regional carbon neutral initiatives.\n`;
 
     // Construct full content string to find character ranges
     const fullText = p1 + p2 + p3 + s1 + s1Content + s2 + s2Content + s3 + s3Content + s4 + s4Content;

@@ -131,12 +131,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </div>
 
           {/* Theme Switcher */}
-          <button className="header-btn theme-btn" onClick={toggleTheme} aria-label="Toggle theme">
+          <button 
+            className="header-btn theme-btn" 
+            onClick={toggleTheme} 
+            aria-label="Toggle theme"
+            aria-pressed={theme === "dark"}
+          >
             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
           {/* Notifications Trigger */}
-          <button className="header-btn notification-btn" onClick={() => triggerNotification("You are on track to beat this week's carbon goals!")}>
+          <button 
+            className="header-btn notification-btn" 
+            onClick={() => triggerNotification("You are on track to beat this week's carbon goals!")}
+            aria-label="View notifications"
+          >
             <Bell size={18} />
           </button>
         </div>
@@ -150,7 +159,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
               const isActive = pathname === item.path;
               const Icon = item.icon;
               return (
-                <Link key={item.path} href={item.path} className={`sidebar-link ${isActive ? "active" : ""}`}>
+                <Link 
+                  key={item.path} 
+                  href={item.path} 
+                  className={`sidebar-link ${isActive ? "active" : ""}`}
+                  aria-label={item.name}
+                >
                   <Icon size={20} className="nav-icon" />
                   <span className="nav-label">{item.name}</span>
                   {isActive && <div className="active-indicator" />}
@@ -186,7 +200,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
           const isActive = pathname === item.path;
           const Icon = item.icon;
           return (
-            <Link key={item.path} href={item.path} className={`bottom-nav-link ${isActive ? "active" : ""}`}>
+            <Link 
+              key={item.path} 
+              href={item.path} 
+              className={`bottom-nav-link ${isActive ? "active" : ""}`}
+              aria-label={item.name}
+            >
               <Icon size={20} />
               <span className="bottom-nav-label">{item.name.split(" ")[0]}</span>
             </Link>
@@ -196,7 +215,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       {/* Premium Toast Notification Banner */}
       {notification && (
-        <div className="toast-notification animate-float">
+        <div className="toast-notification animate-float" role="alert">
           <Leaf size={16} className="toast-icon" />
           <span>{notification}</span>
         </div>

@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
+import { validateAddress, sanitizeString } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
     const { address } = await request.json();
-    if (!address) {
-      return NextResponse.json({ success: false, error: "Address parameter is required." }, { status: 400 });
+    if (!address || typeof address !== "string") {
+      return NextResponse.json({ success: false, error: "Address parameter is required and must be a string." }, { status: 400 });
+    }
+
+    if (!validateAddress(address)) {
+      return NextResponse.json({ success: false, error: "Invalid address format or length." }, { status: 400 });
     }
 
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -62,12 +67,16 @@ export async function POST(request: Request) {
       success: true,
       lat,
       lng,
-      formattedAddress,
+      formattedAddress: sanitizeString(formattedAddress),
       aqi,
-      category,
-      color,
-      dominantPollutant,
-      recommendations
+      category: sanitizeString(category),
+      color: color ? {
+        red: Number(color.red) || 0,
+        green: Number(color.green) || 0,
+        blue: Number(color.blue) || 0
+      } : null,
+      dominantPollutant: sanitizeString(dominantPollutant),
+      recommendations: sanitizeString(recommendations)
     });
   } catch (error: any) {
     console.error("Air Quality API Route Error:", error);

@@ -1,11 +1,24 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { getGoogleAuth } from "@/lib/googleAuth";
+import { sanitizeFormula, validateAddress } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { origin, destination, transitMode, carbonSaved, moneySaved, cost, time } = body;
+
+    if (!validateAddress(origin) || !validateAddress(destination)) {
+      return NextResponse.json({ success: false, error: "Invalid origin or destination address." }, { status: 400 });
+    }
+
+    const safeOrigin = sanitizeFormula(origin);
+    const safeDestination = sanitizeFormula(destination);
+    const safeTransitMode = sanitizeFormula(transitMode);
+    const safeCarbonSaved = Number(carbonSaved) || 0;
+    const safeMoneySaved = Number(moneySaved) || 0;
+    const safeCost = Number(cost) || 0;
+    const safeTime = Number(time) || 0;
 
     const auth = getGoogleAuth([
       "https://www.googleapis.com/auth/spreadsheets",
@@ -125,13 +138,13 @@ export async function POST(request: Request) {
     const rowData = [
       [
         timestampStr,
-        origin,
-        destination,
-        transitMode,
-        carbonSaved,
-        moneySaved,
-        cost,
-        time
+        safeOrigin,
+        safeDestination,
+        safeTransitMode,
+        safeCarbonSaved,
+        safeMoneySaved,
+        safeCost,
+        safeTime
       ]
     ];
 

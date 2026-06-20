@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import AppLayout from "@/components/AppLayout";
 import { UserProfile, defaultProfile, generateCoachRecommendations } from "@/lib/mockAi";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -68,7 +70,13 @@ export default function Dashboard() {
           <div className="dna-viz-container">
             {/* SVG Interactive Nested Rings */}
             <div className="dna-svg-wrapper">
-              <svg viewBox="0 0 220 220" className="dna-svg">
+              <svg 
+                viewBox="0 0 220 220" 
+                className="dna-svg"
+                role="img" 
+                aria-label="Interactive Carbon DNA Radial Chart. Circles from outer to inner represent transportation, food, energy, and shopping footprints."
+              >
+                <title>Carbon DNA Radial breakdown</title>
                 {/* Background Track Rings */}
                 <circle cx="110" cy="110" r="90" className="track-ring" />
                 <circle cx="110" cy="110" r="70" className="track-ring" />
@@ -83,6 +91,16 @@ export default function Dashboard() {
                   strokeDashoffset={2 * Math.PI * 90 * 0.25} // start top
                   onMouseEnter={() => setActiveCategory("transport")}
                   onMouseLeave={() => setActiveCategory(null)}
+                  tabIndex={0}
+                  aria-label={`Transportation footprint: ${profile.breakdown.transportation}%`}
+                  onFocus={() => setActiveCategory("transport")}
+                  onBlur={() => setActiveCategory(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveCategory("transport");
+                    }
+                  }}
                 />
                 
                 {/* Food Ring */}
@@ -93,6 +111,16 @@ export default function Dashboard() {
                   strokeDashoffset={2 * Math.PI * 70 * 0.25}
                   onMouseEnter={() => setActiveCategory("food")}
                   onMouseLeave={() => setActiveCategory(null)}
+                  tabIndex={0}
+                  aria-label={`Food choices footprint: ${profile.breakdown.food}%`}
+                  onFocus={() => setActiveCategory("food")}
+                  onBlur={() => setActiveCategory(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveCategory("food");
+                    }
+                  }}
                 />
 
                 {/* Energy Ring */}
@@ -103,6 +131,16 @@ export default function Dashboard() {
                   strokeDashoffset={2 * Math.PI * 50 * 0.25}
                   onMouseEnter={() => setActiveCategory("energy")}
                   onMouseLeave={() => setActiveCategory(null)}
+                  tabIndex={0}
+                  aria-label={`Home energy footprint: ${profile.breakdown.energy}%`}
+                  onFocus={() => setActiveCategory("energy")}
+                  onBlur={() => setActiveCategory(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveCategory("energy");
+                    }
+                  }}
                 />
 
                 {/* Shopping Ring */}
@@ -113,6 +151,16 @@ export default function Dashboard() {
                   strokeDashoffset={2 * Math.PI * 30 * 0.25}
                   onMouseEnter={() => setActiveCategory("shopping")}
                   onMouseLeave={() => setActiveCategory(null)}
+                  tabIndex={0}
+                  aria-label={`Shopping goods footprint: ${profile.breakdown.shopping}%`}
+                  onFocus={() => setActiveCategory("shopping")}
+                  onBlur={() => setActiveCategory(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveCategory("shopping");
+                    }
+                  }}
                 />
               </svg>
 
@@ -192,7 +240,12 @@ export default function Dashboard() {
           </div>
 
           {/* Card: Digital Twin Status */}
-          <div className="glass-card twin-status-card" onClick={() => router.push("/twin")}>
+          <Card 
+            className="twin-status-card" 
+            interactive 
+            onClick={() => router.push("/twin")}
+            aria-label="Digital carbon twin status. Click to interact."
+          >
             <div className="twin-preview-graphic">
               <div className="pulse-orb" style={{ opacity: profile.score / 100 }}></div>
             </div>
@@ -201,7 +254,7 @@ export default function Dashboard() {
               <h3>Your Twin is {profile.score > 70 ? 'Flourishing' : profile.score > 50 ? 'Stable' : 'Highly Polluted'}</h3>
               <p>Current ecosystem status is reflecting your {profile.score} score. Click to interact.</p>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 
@@ -209,7 +262,7 @@ export default function Dashboard() {
       <h3 className="section-title"><Zap size={18} className="title-icon" /> AI Climate Coach Recommendations</h3>
       <div className="recommendations-grid">
         {recommendations.map((rec) => (
-          <div key={rec.id} className="glass-card recommendation-card">
+          <Card key={rec.id} className="recommendation-card">
             <div className="rec-badge-group">
               <span className={`badge ${
                 rec.category === "Transportation" ? "badge-eco-info" : 
@@ -244,33 +297,53 @@ export default function Dashboard() {
             <button className="btn btn-primary rec-cta" onClick={() => router.push(rec.category === "Transportation" ? "/travel" : "/missions")}>
               {rec.actionLabel}
             </button>
-          </div>
+          </Card>
         ))}
       </div>
 
       {/* Row 3: Quick Navigation Shortcuts */}
       <h3 className="section-title">Carbon Operating Subsystems</h3>
       <div className="subsystems-grid">
-        <div className="glass-card subsystem-item" onClick={() => router.push("/time-machine")}>
+        <Card 
+          className="subsystem-item" 
+          interactive 
+          onClick={() => router.push("/time-machine")}
+          aria-label="Time Machine subsystem: Simulate lifestyle adjustments over futures."
+        >
           <Clock size={24} className="sub-icon" />
           <h4>Time Machine</h4>
           <p>Simulate lifestyle adjustments over 1, 5, and 10 year futures.</p>
-        </div>
-        <div className="glass-card subsystem-item" onClick={() => router.push("/scanner")}>
+        </Card>
+        <Card 
+          className="subsystem-item" 
+          interactive 
+          onClick={() => router.push("/scanner")}
+          aria-label="Carbon Lens subsystem: Scan bills, receipts, or packaging."
+        >
           <Camera size={24} className="sub-icon" />
           <h4>Carbon Lens</h4>
           <p>Scan bills, receipts, or packaging to parse carbon scores.</p>
-        </div>
-        <div className="glass-card subsystem-item" onClick={() => router.push("/travel")}>
+        </Card>
+        <Card 
+          className="subsystem-item" 
+          interactive 
+          onClick={() => router.push("/travel")}
+          aria-label="Travel Engine subsystem: Compare commuter routes."
+        >
           <MapPin size={24} className="sub-icon" />
           <h4>Travel Engine</h4>
           <p>Compare routes using Google Maps API for lowest transport footprint.</p>
-        </div>
-        <div className="glass-card subsystem-item" onClick={() => router.push("/coach")}>
+        </Card>
+        <Card 
+          className="subsystem-item" 
+          interactive 
+          onClick={() => router.push("/coach")}
+          aria-label="Climate Coach subsystem: Chat with Gemini AI Coach."
+        >
           <MessageSquare size={24} className="sub-icon" />
           <h4>Climate Coach</h4>
           <p>Talk to Gemini directly for customized carbon reasoning advice.</p>
-        </div>
+        </Card>
       </div>
 
       <style jsx>{`

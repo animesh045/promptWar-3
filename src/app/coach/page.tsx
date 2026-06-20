@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import AppLayout from "@/components/AppLayout";
 import { UserProfile, defaultProfile, Recommendation } from "@/lib/mockAi";
+import Card from "@/components/ui/Card";
 import { 
   Send, 
   Bot, 
@@ -285,7 +286,7 @@ Ask me anything about lifestyle optimization, cost savings, or commuting paths. 
         {/* Right Side: Quick Action Prompts & Coach Stats */}
         <div className="coach-utility-stack">
           {/* Quick Prompts */}
-          <div className="glass-card prompts-card">
+          <Card className="prompts-card">
             <h3>Suggested Dialogues</h3>
             <p>Select a quick-prompt to launch deep analytics on your DNA indicators.</p>
 
@@ -302,10 +303,10 @@ Ask me anything about lifestyle optimization, cost savings, or commuting paths. 
                 </button>
               ))}
             </div>
-          </div>
+          </Card>
 
           {/* Coach stats summary */}
-          <div className="glass-card coach-stats-card">
+          <Card className="coach-stats-card">
             <h3>Coach Intelligence Context</h3>
             <div className="context-list">
               <div className="context-item">
@@ -326,7 +327,7 @@ Ask me anything about lifestyle optimization, cost savings, or commuting paths. 
               <Info size={12} />
               <span>You can configure a custom Gemini API Key in the Settings page to bypass rate limits.</span>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
 

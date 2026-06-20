@@ -1,28 +1,41 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { getGoogleAuth } from "@/lib/googleAuth";
+import { sanitizeString, validateAddress } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { origin, destination, transitMode, carbonSaved, moneySaved, cost, time } = body;
 
-    const summary = `CarbonOS Commute: ${transitMode}`;
+    if (!validateAddress(origin) || !validateAddress(destination)) {
+      return NextResponse.json({ success: false, error: "Invalid origin or destination address." }, { status: 400 });
+    }
+
+    const safeOrigin = sanitizeString(origin);
+    const safeDestination = sanitizeString(destination);
+    const safeTransitMode = sanitizeString(transitMode);
+    const safeCarbonSaved = Number(carbonSaved) || 0;
+    const safeMoneySaved = Number(moneySaved) || 0;
+    const safeCost = Number(cost) || 0;
+    const safeTime = Number(time) || 0;
+
+    const summary = `CarbonOS Commute: ${safeTransitMode}`;
     const description = `Journey optimized via CarbonOS Climate Twin Network.\n\n` +
-      `- Origin: ${origin}\n` +
-      `- Destination: ${destination}\n` +
-      `- Carbon Saved: ${carbonSaved} kg CO₂\n` +
-      `- Financial Savings: ₹${moneySaved}\n` +
-      `- Fare Cost: ₹${cost}\n` +
-      `- Duration: ${time} minutes\n\n` +
+      `- Origin: ${safeOrigin}\n` +
+      `- Destination: ${safeDestination}\n` +
+      `- Carbon Saved: ${safeCarbonSaved} kg CO₂\n` +
+      `- Financial Savings: ₹${safeMoneySaved}\n` +
+      `- Fare Cost: ₹${safeCost}\n` +
+      `- Duration: ${safeTime} minutes\n\n` +
       `Thank you for driving the planet forward!`;
 
     const startDateTime = new Date();
-    const endDateTime = new Date(startDateTime.getTime() + time * 60000);
+    const endDateTime = new Date(startDateTime.getTime() + safeTime * 60000);
 
     const eventDetails = {
       summary,
-      location: `${origin} to ${destination}`,
+      location: `${safeOrigin} to ${safeDestination}`,
       description,
       start: {
         dateTime: startDateTime.toISOString(),

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { simulateCarbonLensScan } from "@/lib/mockAi";
+import { sanitizeString } from "@/lib/security";
 
 export async function POST(request: Request) {
   let scanType = "receipt";
@@ -16,7 +17,12 @@ export async function POST(request: Request) {
     if (apiKey) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-2.5-flash",
+          generationConfig: {
+            responseMimeType: "application/json"
+          }
+        });
 
         if (image) {
           // Base64 image extraction
@@ -35,7 +41,7 @@ Extract carbon details and output a clean JSON response containing:
   "costComparison": { "current": number, "green": number }, // estimated price in INR
   "expectedAnnualImpact": number // estimated annual kg CO2 saved by switching
 }
-Format your output strictly as a single JSON object. Do not include markdown wraps or backticks in the response, just return raw JSON text.`;
+Format your output strictly as a single JSON object.`;
 
           const result = await model.generateContent([
             systemPrompt,
@@ -48,8 +54,19 @@ Format your output strictly as a single JSON object. Do not include markdown wra
           ]);
 
           const text = result.response.text();
-          const cleanJson = text.replace(/```json/g, "").replace(/```/g, "").trim();
-          const parsed = JSON.parse(cleanJson);
+          const parsed = JSON.parse(text);
+
+          // Sanitize inputs
+          if (parsed.extractedTitle) parsed.extractedTitle = sanitizeString(parsed.extractedTitle);
+          if (Array.isArray(parsed.impactDrivers)) {
+            parsed.impactDrivers = parsed.impactDrivers.map(sanitizeString);
+          }
+          if (Array.isArray(parsed.healthierAlternatives)) {
+            parsed.healthierAlternatives = parsed.healthierAlternatives.map(sanitizeString);
+          }
+          if (Array.isArray(parsed.greenerAlternatives)) {
+            parsed.greenerAlternatives = parsed.greenerAlternatives.map(sanitizeString);
+          }
 
           return NextResponse.json(parsed);
         } else {
@@ -68,19 +85,31 @@ Output a JSON response in this exact format:
   "costComparison": { "current": number, "green": number }, // estimated current vs greener price in INR (₹)
   "expectedAnnualImpact": number // estimated annual kg CO2 saved by switching
 }
-Format your output strictly as a single JSON object. Do not include markdown wraps or backticks in the response, just return raw JSON text.`;
+Format your output strictly as a single JSON object.`;
 
           const result = await model.generateContent({
             contents: [{ role: "user", parts: [{ text: systemPrompt }] }],
             generationConfig: {
               temperature: 0.85,
-              maxOutputTokens: 2000
+              maxOutputTokens: 2000,
+              responseMimeType: "application/json"
             }
           });
 
           const text = result.response.text();
-          const cleanJson = text.replace(/```json/g, "").replace(/```/g, "").trim();
-          const parsed = JSON.parse(cleanJson);
+          const parsed = JSON.parse(text);
+
+          if (parsed.extractedTitle) parsed.extractedTitle = sanitizeString(parsed.extractedTitle);
+          if (Array.isArray(parsed.impactDrivers)) {
+            parsed.impactDrivers = parsed.impactDrivers.map(sanitizeString);
+          }
+          if (Array.isArray(parsed.healthierAlternatives)) {
+            parsed.healthierAlternatives = parsed.healthierAlternatives.map(sanitizeString);
+          }
+          if (Array.isArray(parsed.greenerAlternatives)) {
+            parsed.greenerAlternatives = parsed.greenerAlternatives.map(sanitizeString);
+          }
+
           return NextResponse.json(parsed);
         }
       } catch (geminiError) {

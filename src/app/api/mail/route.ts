@@ -1,14 +1,27 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import { getGoogleAuth } from "@/lib/googleAuth";
+import { sanitizeString, validateAddress } from "@/lib/security";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { origin, destination, transitMode, carbonSaved, moneySaved, cost, time } = body;
 
+    if (!validateAddress(origin) || !validateAddress(destination)) {
+      return NextResponse.json({ success: false, error: "Invalid origin or destination address." }, { status: 400 });
+    }
+
+    const safeOrigin = sanitizeString(origin);
+    const safeDestination = sanitizeString(destination);
+    const safeTransitMode = sanitizeString(transitMode);
+    const safeCarbonSaved = Number(carbonSaved) || 0;
+    const safeMoneySaved = Number(moneySaved) || 0;
+    const safeCost = Number(cost) || 0;
+    const safeTime = Number(time) || 0;
+
     const recipient = "animesh045th3@gmail.com";
-    const subject = `CarbonOS Route Certificate - ${transitMode}`;
+    const subject = `CarbonOS Route Certificate - ${safeTransitMode}`;
 
     // Create styled HTML email body
     const htmlBody = `
@@ -24,11 +37,11 @@ export async function POST(request: Request) {
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 14px;">
           <tr>
             <td style="padding: 8px 0; color: #9ca3af; font-weight: bold;">ORIGIN:</td>
-            <td style="padding: 8px 0; color: #ffffff; text-align: right;">${origin}</td>
+            <td style="padding: 8px 0; color: #ffffff; text-align: right;">${safeOrigin}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #9ca3af; font-weight: bold;">DESTINATION:</td>
-            <td style="padding: 8px 0; color: #ffffff; text-align: right;">${destination}</td>
+            <td style="padding: 8px 0; color: #ffffff; text-align: right;">${safeDestination}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; color: #9ca3af; font-weight: bold;">DATE LOGGED:</td>
@@ -41,24 +54,24 @@ export async function POST(request: Request) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
           <div style="background-color: #111815; padding: 15px; border-radius: 8px; border: 1px solid #1f2d24; text-align: center;">
             <span style="font-size: 10px; color: #9ca3af; text-transform: uppercase; display: block; margin-bottom: 5px;">Active Trajectory</span>
-            <strong style="font-size: 16px; color: #10b981;">${transitMode}</strong>
+            <strong style="font-size: 16px; color: #10b981;">${safeTransitMode}</strong>
           </div>
           <div style="background-color: #111815; padding: 15px; border-radius: 8px; border: 1px solid #1f2d24; text-align: center;">
             <span style="font-size: 10px; color: #9ca3af; text-transform: uppercase; display: block; margin-bottom: 5px;">Carbon Saved</span>
-            <strong style="font-size: 16px; color: #34d399;">-${carbonSaved} kg CO₂</strong>
+            <strong style="font-size: 16px; color: #34d399;">-${safeCarbonSaved} kg CO₂</strong>
           </div>
           <div style="background-color: #111815; padding: 15px; border-radius: 8px; border: 1px solid #1f2d24; text-align: center;">
             <span style="font-size: 10px; color: #9ca3af; text-transform: uppercase; display: block; margin-bottom: 5px;">Financial Savings</span>
-            <strong style="font-size: 16px; color: #34d399;">₹${moneySaved}</strong>
+            <strong style="font-size: 16px; color: #34d399;">₹${safeMoneySaved}</strong>
           </div>
           <div style="background-color: #111815; padding: 15px; border-radius: 8px; border: 1px solid #1f2d24; text-align: center;">
             <span style="font-size: 10px; color: #9ca3af; text-transform: uppercase; display: block; margin-bottom: 5px;">Duration</span>
-            <strong style="font-size: 16px; color: #ffffff;">${time} mins</strong>
+            <strong style="font-size: 16px; color: #ffffff;">${safeTime} mins</strong>
           </div>
         </div>
         
         <p style="font-size: 13px; line-height: 1.6; color: #d1d5db; text-align: justify; margin-bottom: 30px;">
-          By prioritizing <strong>${transitMode}</strong> over the baseline cab ride, you have prevented <strong>${carbonSaved} kg of CO₂</strong> emissions. This reduction is equivalent to powering a smartphone for <strong>${Math.round(carbonSaved * 350)} days</strong>. Thank you for your active ecological stewardship.
+          By prioritizing <strong>${safeTransitMode}</strong> over the baseline cab ride, you have prevented <strong>${safeCarbonSaved} kg of CO₂</strong> emissions. This reduction is equivalent to powering a smartphone for <strong>${Math.round(safeCarbonSaved * 350)} days</strong>. Thank you for your active ecological stewardship.
         </p>
         
         <div style="border-top: 1px solid #1f2d24; padding-top: 15px; font-size: 11px; color: #6b7280; display: flex; justify-content: space-between; align-items: center;">
