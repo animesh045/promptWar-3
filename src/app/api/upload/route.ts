@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
-import path from "path";
-import fs from "fs";
+import { getGoogleAuth } from "@/lib/googleAuth";
 
 export async function POST(request: Request) {
   try {
@@ -12,19 +11,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "No file uploaded." }, { status: 400 });
     }
 
-    // Load credentials
-    const keysPath = path.join(process.cwd(), "keys.json");
-    if (!fs.existsSync(keysPath)) {
-      throw new Error("keys.json service account configuration not found in root.");
-    }
-    const keys = JSON.parse(fs.readFileSync(keysPath, "utf8"));
-
-    // Authenticate GCS
-    const auth = new google.auth.JWT({
-      email: keys.client_email,
-      key: keys.private_key,
-      scopes: ["https://www.googleapis.com/auth/devstorage.read_write"]
-    });
+    const auth = getGoogleAuth(["https://www.googleapis.com/auth/devstorage.read_write"]);
 
     const storage = google.storage({ version: "v1", auth });
     const bucketName = "amd-ideathon-495506-lens-vault";
@@ -39,7 +26,7 @@ export async function POST(request: Request) {
       if (err.code === 404 || err.message?.includes("Not Found")) {
         console.log(`Bucket ${bucketName} not found, creating...`);
         await storage.buckets.insert({
-          project: keys.project_id,
+          project: process.env.NEXT_PUBLIC_GCP_PROJECT_ID || "amd-ideathon-495506",
           requestBody: {
             name: bucketName,
             location: "asia-south1" // India region

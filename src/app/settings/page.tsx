@@ -95,8 +95,9 @@ export default function Settings() {
                 <h3>User Profile</h3>
               </div>
               <div className="input-group">
-                <span className="input-label">Identity Name</span>
+                <label htmlFor="identity-name-input" className="input-label">Identity Name</label>
                 <input 
+                  id="identity-name-input"
                   type="text" 
                   value={profile.name} 
                   onChange={(e) => setProfile({ ...profile, name: e.target.value })}
@@ -120,16 +121,18 @@ export default function Settings() {
 
               <div className="input-group">
                 <div className="key-input-label-row">
-                  <span className="input-label">Gemini API Key</span>
+                  <label htmlFor="gemini-key-input" className="input-label">Gemini API Key</label>
                   <button 
                     type="button" 
                     className="visibility-toggle-btn"
                     onClick={() => setShowGemini(!showGemini)}
+                    aria-label={showGemini ? "Hide Gemini API key" : "Show Gemini API key"}
                   >
                     {showGemini ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
                 <input 
+                  id="gemini-key-input"
                   type={showGemini ? "text" : "password"} 
                   value={geminiKey} 
                   onChange={(e) => setGeminiKey(e.target.value)}
@@ -140,16 +143,18 @@ export default function Settings() {
 
               <div className="input-group">
                 <div className="key-input-label-row">
-                  <span className="input-label">Google Maps Javascript API Key</span>
+                  <label htmlFor="maps-key-input" className="input-label">Google Maps Javascript API Key</label>
                   <button 
                     type="button" 
                     className="visibility-toggle-btn"
                     onClick={() => setShowMaps(!showMaps)}
+                    aria-label={showMaps ? "Hide Google Maps API key" : "Show Google Maps API key"}
                   >
                     {showMaps ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
                 <input 
+                  id="maps-key-input"
                   type={showMaps ? "text" : "password"} 
                   value={mapsKey} 
                   onChange={(e) => setMapsKey(e.target.value)}

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
-import path from "path";
-import fs from "fs";
+import { getGoogleAuth } from "@/lib/googleAuth";
 
 export async function POST(request: Request) {
   try {
@@ -10,19 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Text parameter is required." }, { status: 400 });
     }
 
-    // Load credentials
-    const keysPath = path.join(process.cwd(), "keys.json");
-    if (!fs.existsSync(keysPath)) {
-      throw new Error("keys.json service account configuration not found in root.");
-    }
-    const keys = JSON.parse(fs.readFileSync(keysPath, "utf8"));
-
-    // Authenticate
-    const auth = new google.auth.JWT({
-      email: keys.client_email,
-      key: keys.private_key,
-      scopes: ["https://www.googleapis.com/auth/cloud-platform"]
-    });
+    const auth = getGoogleAuth(["https://www.googleapis.com/auth/cloud-platform"]);
 
     const tts = google.texttospeech({ version: "v1", auth });
 

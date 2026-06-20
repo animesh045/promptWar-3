@@ -612,10 +612,11 @@ export default function TravelImpactEngine() {
 
             <form onSubmit={handleRouteCompute} className="routing-form">
               <div className="input-group">
-                <span className="input-label">Origin Address</span>
+                <label htmlFor="origin-input" className="input-label">Origin Address</label>
                 <div className="input-with-icon">
                   <MapPin size={16} className="input-field-icon" />
                   <input 
+                    id="origin-input"
                     type="text" 
                     value={origin} 
                     onChange={(e) => setOrigin(e.target.value)}
@@ -628,10 +629,11 @@ export default function TravelImpactEngine() {
               </div>
 
               <div className="input-group">
-                <span className="input-label">Destination Address</span>
+                <label htmlFor="destination-input" className="input-label">Destination Address</label>
                 <div className="input-with-icon">
                   <Navigation size={16} className="input-field-icon" />
                   <input 
+                    id="destination-input"
                     type="text" 
                     value={destination} 
                     onChange={(e) => setDestination(e.target.value)}

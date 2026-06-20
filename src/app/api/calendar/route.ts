@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
-import path from "path";
-import fs from "fs";
+import { getGoogleAuth } from "@/lib/googleAuth";
 
 export async function POST(request: Request) {
   try {
@@ -44,35 +43,26 @@ export async function POST(request: Request) {
 
     let apiError = "";
     try {
-      const keysPath = path.join(process.cwd(), "keys.json");
-      if (fs.existsSync(keysPath)) {
-        const keys = JSON.parse(fs.readFileSync(keysPath, "utf8"));
-        
-        const auth = new google.auth.JWT({
-          email: keys.client_email,
-          key: keys.private_key,
-          scopes: [
-            "https://www.googleapis.com/auth/calendar",
-            "https://www.googleapis.com/auth/calendar.events"
-          ]
-        });
+      const auth = getGoogleAuth([
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/calendar.events"
+      ]);
 
-        const calendar = google.calendar({ version: "v3", auth });
+      const calendar = google.calendar({ version: "v3", auth });
 
-        // Create the event on the primary calendar of the service account and invite the user
-        const response = await calendar.events.insert({
-          calendarId: "primary",
-          sendUpdates: "all",
-          requestBody: eventDetails
-        });
+      // Create the event on the primary calendar of the service account and invite the user
+      const response = await calendar.events.insert({
+        calendarId: "primary",
+        sendUpdates: "all",
+        requestBody: eventDetails
+      });
 
-        return NextResponse.json({
-          success: true,
-          simulated: false,
-          eventId: response.data.id,
-          htmlLink: response.data.htmlLink
-        });
-      }
+      return NextResponse.json({
+        success: true,
+        simulated: false,
+        eventId: response.data.id,
+        htmlLink: response.data.htmlLink
+      });
     } catch (err: any) {
       console.warn("Google Calendar API direct connection failed, running in simulation mode:", err.message);
       apiError = err.message;

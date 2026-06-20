@@ -1,29 +1,17 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
-import path from "path";
-import fs from "fs";
+import { getGoogleAuth } from "@/lib/googleAuth";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { origin, destination, transitMode, carbonSaved, moneySaved, cost, time, carbon } = body;
 
-    // Load credentials
-    const keysPath = path.join(process.cwd(), "keys.json");
-    if (!fs.existsSync(keysPath)) {
-      throw new Error("keys.json service account configuration not found in root.");
-    }
-    const keys = JSON.parse(fs.readFileSync(keysPath, "utf8"));
-
-    const auth = new google.auth.JWT({
-      email: keys.client_email,
-      key: keys.private_key,
-      scopes: [
-        "https://www.googleapis.com/auth/documents",
-        "https://www.googleapis.com/auth/drive",
-        "https://www.googleapis.com/auth/drive.file"
-      ]
-    });
+    const auth = getGoogleAuth([
+      "https://www.googleapis.com/auth/documents",
+      "https://www.googleapis.com/auth/drive",
+      "https://www.googleapis.com/auth/drive.file"
+    ]);
 
     const docs = google.docs({ version: "v1", auth });
     const drive = google.drive({ version: "v3", auth });

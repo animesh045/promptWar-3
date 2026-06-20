@@ -97,8 +97,9 @@ export default function Onboarding() {
               <p>CarbonOS starts by creating a personalized model of your carbon output based on your daily choices.</p>
               
               <div className="input-group">
-                <span className="input-label">What should your Climate Coach call you?</span>
+                <label htmlFor="name-input" className="input-label">What should your Climate Coach call you?</label>
                 <input 
+                  id="name-input"
                   type="text" 
                   name="name"
                   placeholder="Enter your name" 
@@ -328,8 +329,9 @@ export default function Onboarding() {
 
               <div className="grid-2-col">
                 <div className="input-group">
-                  <span className="input-label">Monthly Energy Bill (₹)</span>
+                  <label htmlFor="energy-bill-input" className="input-label">Monthly Energy Bill (₹)</label>
                   <input 
+                    id="energy-bill-input"
                     type="number" 
                     name="energyBill"
                     min="200" 
@@ -341,8 +343,9 @@ export default function Onboarding() {
                 </div>
                 
                 <div className="input-group">
-                  <span className="input-label">Household size (people)</span>
+                  <label htmlFor="household-size-input" className="input-label">Household size (people)</label>
                   <input 
+                    id="household-size-input"
                     type="number" 
                     name="householdSize"
                     min="1" 

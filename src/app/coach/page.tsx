@@ -254,12 +254,14 @@ Ask me anything about lifestyle optimization, cost savings, or commuting paths. 
               placeholder="Ask your climate coach a question..."
               className="input-field chat-input-element"
               disabled={loading}
+              aria-label="Ask your climate coach a question"
             />
             <button 
               className={`btn btn-secondary mic-btn ${recognizing ? "recording" : ""}`} 
               onClick={startSpeechRecognition} 
               disabled={loading}
               title="Voice query (powered by Google Speech)"
+              aria-label="Voice query (powered by Google Speech)"
               style={{
                 width: "44px",
                 height: "44px",
@@ -274,7 +276,7 @@ Ask me anything about lifestyle optimization, cost savings, or commuting paths. 
             >
               <Mic size={16} className={recognizing ? "animate-pulse" : ""} />
             </button>
-            <button className="btn btn-primary chat-send-btn" onClick={() => handleSend()} disabled={loading}>
+            <button className="btn btn-primary chat-send-btn" onClick={() => handleSend()} disabled={loading} aria-label="Send message">
               <Send size={16} />
             </button>
           </div>

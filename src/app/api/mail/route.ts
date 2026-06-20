@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
-import path from "path";
-import fs from "fs";
+import { getGoogleAuth } from "@/lib/googleAuth";
 
 export async function POST(request: Request) {
   try {
@@ -72,54 +71,45 @@ export async function POST(request: Request) {
     // Attempt Gmail send
     let apiError = "";
     try {
-      const keysPath = path.join(process.cwd(), "keys.json");
-      if (fs.existsSync(keysPath)) {
-        const keys = JSON.parse(fs.readFileSync(keysPath, "utf8"));
-        
-        const auth = new google.auth.JWT({
-          email: keys.client_email,
-          key: keys.private_key,
-          scopes: ["https://www.googleapis.com/auth/gmail.send"]
-        });
+      const auth = getGoogleAuth(["https://www.googleapis.com/auth/gmail.send"]);
+      const gmail = google.gmail({ version: "v1", auth });
+      const senderEmail = process.env.GOOGLE_CLIENT_EMAIL || "vertex-express@amd-ideathon-495506.iam.gserviceaccount.com";
 
-        const gmail = google.gmail({ version: "v1", auth });
+      // Encode MIME message
+      const makeBody = (to: string, from: string, sub: string, message: string) => {
+        const str = [
+          `To: ${to}`,
+          `From: ${from}`,
+          `Subject: ${sub}`,
+          "MIME-Version: 1.0",
+          "Content-Type: text/html; charset=utf-8",
+          "Content-Transfer-Encoding: 7bit",
+          "",
+          message,
+        ].join("\n");
 
-        // Encode MIME message
-        const makeBody = (to: string, from: string, sub: string, message: string) => {
-          const str = [
-            `To: ${to}`,
-            `From: ${from}`,
-            `Subject: ${sub}`,
-            "MIME-Version: 1.0",
-            "Content-Type: text/html; charset=utf-8",
-            "Content-Transfer-Encoding: 7bit",
-            "",
-            message,
-          ].join("\n");
+        return Buffer.from(str)
+          .toString("base64")
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/, "");
+      };
 
-          return Buffer.from(str)
-            .toString("base64")
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=+$/, "");
-        };
-
-        const rawMessage = makeBody(recipient, keys.client_email, subject, htmlBody);
-        
-        await gmail.users.messages.send({
-          userId: "me",
-          requestBody: {
-            raw: rawMessage
-          }
-        });
-        
-        return NextResponse.json({
-          success: true,
-          simulated: false,
-          recipient,
-          subject
-        });
-      }
+      const rawMessage = makeBody(recipient, senderEmail, subject, htmlBody);
+      
+      await gmail.users.messages.send({
+        userId: "me",
+        requestBody: {
+          raw: rawMessage
+        }
+      });
+      
+      return NextResponse.json({
+        success: true,
+        simulated: false,
+        recipient,
+        subject
+      });
     } catch (err: any) {
       console.warn("Gmail API direct dispatch failed, running in simulation mode:", err.message);
       apiError = err.message;
