@@ -2,71 +2,81 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Car, 
-  Leaf, 
-  Utensils, 
-  ShoppingBag, 
-  Home, 
-  ArrowLeft, 
-  ArrowRight, 
-  User, 
-  Check, 
-  Sparkles,
-  Bike
-} from "lucide-react";
+import { Leaf, Sparkles, ArrowRight } from "lucide-react";
 import { calculateCarbonDNA } from "@/lib/mockAi";
+
+const transportOptions = [
+  { value: "petrol_car", label: "🚗 Petrol / Diesel Car" },
+  { value: "electric_car", label: "⚡ Electric Car" },
+  { value: "two_wheeler", label: "🏍️ Petrol Bike / Scooter" },
+  { value: "ola_scooter", label: "🛵 Electric Scooter" },
+  { value: "metro_train", label: "🚇 Metro / Train" },
+  { value: "auto_rickshaw", label: "🛺 Auto-Rickshaw (CNG)" },
+];
+
+const foodOptions = [
+  { value: "nonveg_heavy", label: "🍖 Non-Veg Heavy" },
+  { value: "nonveg_light", label: "🍗 Non-Veg Light" },
+  { value: "vegetarian", label: "🥗 Vegetarian" },
+  { value: "vegan", label: "🌱 Vegan" },
+];
+
+const energySourceOptions = [
+  { value: "coal_grid", label: "🏭 Coal Grid (Default)" },
+  { value: "mixed_grid", label: "🌤️ Mixed Green Pool" },
+  { value: "solar_roof", label: "☀️ Rooftop Solar" },
+];
+
+const shoppingOptions = [
+  { value: "secondhand_minimal", label: "♻️ Eco / Khadi" },
+  { value: "moderate", label: "🛍️ Moderate" },
+  { value: "frequent_new", label: "🛒 Frequent New" },
+];
+
+const flightOptions = [
+  { value: "never", label: "✈️ Rarely" },
+  { value: "occasional", label: "🛫 Occasional" },
+  { value: "frequent", label: "🌍 Frequent" },
+];
 
 export default function Onboarding() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
     transportation: "petrol_car",
-    commuteMiles: 15, // in km
+    commuteMiles: 15,
     foodHabit: "vegetarian",
     shoppingHabits: "moderate",
     flightFrequency: "occasional",
-    energyBill: 2000, // in INR
+    energyBill: 2000,
     energySource: "coal_grid",
-    householdSize: 4
+    householdSize: 4,
   });
-
   const [calculating, setCalculating] = useState(false);
   const [results, setResults] = useState<any>(null);
+  const [error, setError] = useState("");
 
-  const nextStep = () => {
-    if (step === 1 && !formData.name.trim()) {
-      alert("Please enter your name to personalize your Climate Coach.");
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      setError("Please enter your name.");
       return;
     }
-    setStep(step + 1);
-  };
-
-  const prevStep = () => setStep(step - 1);
-
-  const handleSelectOption = (field: string, value: any) => {
-    setFormData({ ...formData, [field]: value });
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = () => {
+    setError("");
     setCalculating(true);
-    
-    // Simulate complex AI reasoning delay
     setTimeout(() => {
-      const generatedProfile = calculateCarbonDNA(formData);
-      setResults(generatedProfile);
+      const profile = calculateCarbonDNA(formData);
+      setResults(profile);
       setCalculating(false);
-      setStep(6); // Go to results display step
-    }, 2000);
+    }, 1500);
   };
 
-  const handleFinishOnboarding = () => {
+  const handleFinish = () => {
     if (results) {
       localStorage.setItem("carbonos-profile", JSON.stringify(results));
       router.push("/dashboard");
@@ -74,748 +84,639 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="onboard-viewport">
-      <div className="onboard-radial-glow"></div>
-      
-      <div className="onboard-container">
-        {/* Progress bar */}
-        {step < 6 && (
-          <div className="progress-bar-container">
-            <div className="progress-bar-track">
-              <div className="progress-bar-fill" style={{ width: `${(step / 5) * 100}%` }}></div>
+    <div className="ob-page">
+      <div className="ob-glow" />
+
+      <main className="ob-main">
+        {/* Header */}
+        <div className="ob-header">
+          <div className="ob-logo">
+            <Leaf size={20} />
+            CarbonOS
+          </div>
+          <h1 className="ob-title">Initialize Your Carbon DNA</h1>
+          <p className="ob-subtitle">
+            Tell us about your lifestyle and we&apos;ll compute your personal carbon
+            baseline — your Digital Climate Twin.
+          </p>
+        </div>
+
+        {!results ? (
+          <form
+            className="ob-form"
+            onSubmit={handleSubmit}
+            aria-label="Carbon DNA initialization form"
+          >
+            {/* Name */}
+            <div className="ob-field">
+              <label htmlFor="ob-name" className="ob-label">
+                Your Name
+              </label>
+              <input
+                id="ob-name"
+                name="name"
+                type="text"
+                className="ob-input"
+                placeholder="e.g. Riya Sharma"
+                value={formData.name}
+                onChange={handleChange}
+                maxLength={32}
+                autoComplete="given-name"
+              />
+              {error && (
+                <span className="ob-error" role="alert">
+                  {error}
+                </span>
+              )}
             </div>
-            <div className="progress-step-text">Step {step} of 5</div>
+
+            <div className="ob-divider" />
+
+            {/* Transport + Commute distance */}
+            <div className="ob-row">
+              <div className="ob-field">
+                <label htmlFor="ob-transport" className="ob-label">
+                  Primary Transport
+                </label>
+                <select
+                  id="ob-transport"
+                  name="transportation"
+                  className="ob-select"
+                  value={formData.transportation}
+                  onChange={handleChange}
+                  aria-label="Primary transport method"
+                >
+                  {transportOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="ob-field">
+                <label htmlFor="ob-commute" className="ob-label">
+                  Daily Commute — {formData.commuteMiles} km
+                </label>
+                <input
+                  id="ob-commute"
+                  name="commuteMiles"
+                  type="range"
+                  className="ob-range"
+                  min={2}
+                  max={120}
+                  value={formData.commuteMiles}
+                  onChange={handleChange}
+                  aria-valuenow={formData.commuteMiles}
+                  aria-valuemin={2}
+                  aria-valuemax={120}
+                />
+              </div>
+            </div>
+
+            {/* Food + Flights */}
+            <div className="ob-row">
+              <div className="ob-field">
+                <label htmlFor="ob-food" className="ob-label">
+                  Diet Habit
+                </label>
+                <select
+                  id="ob-food"
+                  name="foodHabit"
+                  className="ob-select"
+                  value={formData.foodHabit}
+                  onChange={handleChange}
+                  aria-label="Diet habit"
+                >
+                  {foodOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="ob-field">
+                <label htmlFor="ob-flights" className="ob-label">
+                  Flight Frequency
+                </label>
+                <select
+                  id="ob-flights"
+                  name="flightFrequency"
+                  className="ob-select"
+                  value={formData.flightFrequency}
+                  onChange={handleChange}
+                  aria-label="Flight frequency"
+                >
+                  {flightOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Shopping + Energy Source */}
+            <div className="ob-row">
+              <div className="ob-field">
+                <label htmlFor="ob-shopping" className="ob-label">
+                  Shopping Habits
+                </label>
+                <select
+                  id="ob-shopping"
+                  name="shoppingHabits"
+                  className="ob-select"
+                  value={formData.shoppingHabits}
+                  onChange={handleChange}
+                  aria-label="Shopping habits"
+                >
+                  {shoppingOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="ob-field">
+                <label htmlFor="ob-energy-source" className="ob-label">
+                  Electricity Source
+                </label>
+                <select
+                  id="ob-energy-source"
+                  name="energySource"
+                  className="ob-select"
+                  value={formData.energySource}
+                  onChange={handleChange}
+                  aria-label="Electricity source"
+                >
+                  {energySourceOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Energy bill + Household size */}
+            <div className="ob-row">
+              <div className="ob-field">
+                <label htmlFor="ob-bill" className="ob-label">
+                  Monthly Energy Bill (₹)
+                </label>
+                <input
+                  id="ob-bill"
+                  name="energyBill"
+                  type="number"
+                  className="ob-input"
+                  min={200}
+                  max={50000}
+                  value={formData.energyBill}
+                  onChange={handleChange}
+                  aria-label="Monthly energy bill in rupees"
+                />
+              </div>
+              <div className="ob-field">
+                <label htmlFor="ob-household" className="ob-label">
+                  Household Size (people)
+                </label>
+                <input
+                  id="ob-household"
+                  name="householdSize"
+                  type="number"
+                  className="ob-input"
+                  min={1}
+                  max={15}
+                  value={formData.householdSize}
+                  onChange={handleChange}
+                  aria-label="Number of people in household"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="ob-submit"
+              disabled={calculating}
+              aria-busy={calculating}
+              aria-label="Generate your Carbon DNA profile"
+            >
+              {calculating ? (
+                <>
+                  <span className="ob-spinner" aria-hidden="true" /> Calculating...
+                </>
+              ) : (
+                <>
+                  Generate Carbon DNA <ArrowRight size={18} aria-hidden="true" />
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          /* Results */
+          <div className="ob-results" role="region" aria-label="Carbon DNA results">
+            <div className="ob-results-badge">
+              <Sparkles size={14} aria-hidden="true" /> DNA PROFILE READY
+            </div>
+            <h2 className="ob-results-title">
+              Welcome, {results.name}!
+            </h2>
+            <p className="ob-results-sub">
+              Your Digital Climate Twin has been calibrated.
+            </p>
+
+            <div className="ob-score-row">
+              <div className="ob-score-circle" aria-label={`Carbon score: ${results.score} out of 100`}>
+                <span className="ob-score-num">{results.score}</span>
+                <span className="ob-score-lbl">/ 100</span>
+              </div>
+              <div className="ob-score-desc">
+                <p>
+                  {results.score > 75
+                    ? "🌿 Excellent — well below urban average!"
+                    : results.score > 50
+                    ? "⚡ Moderate — solid improvement headroom."
+                    : "🔥 High emissions — time to optimise."}
+                </p>
+              </div>
+            </div>
+
+            <div className="ob-bars" aria-label="Footprint breakdown">
+              {[
+                { label: "🚗 Transport", key: "transportation", cls: "bar-trans" },
+                { label: "🍔 Food", key: "food", cls: "bar-food" },
+                { label: "🛍️ Shopping", key: "shopping", cls: "bar-shop" },
+                { label: "⚡ Energy", key: "energy", cls: "bar-energy" },
+              ].map(({ label, key, cls }) => (
+                <div key={key} className="ob-bar-row">
+                  <span className="ob-bar-label">{label}</span>
+                  <div className="ob-bar-track" role="progressbar" aria-valuenow={results.breakdown[key]} aria-valuemin={0} aria-valuemax={100} aria-label={`${label}: ${results.breakdown[key]}%`}>
+                    <div
+                      className={`ob-bar-fill ${cls}`}
+                      style={{ width: `${results.breakdown[key]}%` }}
+                    />
+                  </div>
+                  <span className="ob-bar-pct">{results.breakdown[key]}%</span>
+                </div>
+              ))}
+            </div>
+
+            <button
+              className="ob-submit"
+              onClick={handleFinish}
+              aria-label="Enter CarbonOS dashboard"
+            >
+              Boot Climate OS <ArrowRight size={18} aria-hidden="true" />
+            </button>
           </div>
         )}
-
-        <div className="glass-card onboard-card">
-          {/* Step 1: User Profile */}
-          {step === 1 && (
-            <div className="step-content">
-              <div className="step-icon"><User size={24} /></div>
-              <h2>Build your Climate Identity</h2>
-              <p>CarbonOS starts by creating a personalized model of your carbon output based on your daily choices.</p>
-              
-              <div className="input-group">
-                <label htmlFor="name-input" className="input-label">What should your Climate Coach call you?</label>
-                <input 
-                  id="name-input"
-                  type="text" 
-                  name="name"
-                  placeholder="Enter your name" 
-                  className="input-field name-input"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  maxLength={24}
-                />
-              </div>
-
-              <div className="step-footer">
-                <div></div>
-                <button className="btn btn-primary" onClick={nextStep}>
-                  Get Started <ArrowRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2: Transportation */}
-          {step === 2 && (
-            <div className="step-content">
-              <div className="step-icon"><Car size={24} /></div>
-              <h2>How do you commute?</h2>
-              <p>Transport forms a significant portion of Indian urban emissions. Select your primary commute method.</p>
-
-              <div className="options-grid">
-                <div 
-                  className={`opt-card ${formData.transportation === "petrol_car" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("transportation", "petrol_car")}
-                >
-                  <div className="opt-indicator">{formData.transportation === "petrol_car" && <Check size={12} />}</div>
-                  <h3>Petrol/Diesel Car</h3>
-                  <span>Hatchback, Sedan or SUV</span>
-                </div>
-                <div 
-                  className={`opt-card ${formData.transportation === "electric_car" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("transportation", "electric_car")}
-                >
-                  <div className="opt-indicator">{formData.transportation === "electric_car" && <Check size={12} />}</div>
-                  <h3>Electric Car</h3>
-                  <span>Battery EV (Nexon, ZS EV)</span>
-                </div>
-                <div 
-                  className={`opt-card ${formData.transportation === "two_wheeler" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("transportation", "two_wheeler")}
-                >
-                  <div className="opt-indicator">{formData.transportation === "two_wheeler" && <Check size={12} />}</div>
-                  <h3>Petrol Bike</h3>
-                  <span>Motorcycle or scooter</span>
-                </div>
-                <div 
-                  className={`opt-card ${formData.transportation === "ola_scooter" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("transportation", "ola_scooter")}
-                >
-                  <div className="opt-indicator">{formData.transportation === "ola_scooter" && <Check size={12} />}</div>
-                  <h3>Electric Scooter</h3>
-                  <span>Ola, Ather or TVS iQube</span>
-                </div>
-                <div 
-                  className={`opt-card ${formData.transportation === "metro_train" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("transportation", "metro_train")}
-                >
-                  <div className="opt-indicator">{formData.transportation === "metro_train" && <Check size={12} />}</div>
-                  <h3>Metro / Train</h3>
-                  <span>Mumbai Local or City Metro</span>
-                </div>
-                <div 
-                  className={`opt-card ${formData.transportation === "auto_rickshaw" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("transportation", "auto_rickshaw")}
-                >
-                  <div className="opt-indicator">{formData.transportation === "auto_rickshaw" && <Check size={12} />}</div>
-                  <h3>Auto-Rickshaw</h3>
-                  <span>CNG Auto commutes</span>
-                </div>
-              </div>
-
-              <div className="input-group slide-in">
-                <span className="input-label">Daily commute distance: {formData.commuteMiles} km</span>
-                <input 
-                  type="range" 
-                  name="commuteMiles"
-                  min="2" 
-                  max="120" 
-                  value={formData.commuteMiles}
-                  onChange={handleInputChange}
-                  className="slider-input"
-                />
-              </div>
-
-              <div className="step-footer">
-                <button className="btn btn-secondary" onClick={prevStep}>
-                  <ArrowLeft size={16} /> Back
-                </button>
-                <button className="btn btn-primary" onClick={nextStep}>
-                  Next Section <ArrowRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Diet */}
-          {step === 3 && (
-            <div className="step-content">
-              <div className="step-icon"><Utensils size={24} /></div>
-              <h2>What are your eating habits?</h2>
-              <p>Methane output from agricultural food lines is a major contributor to warming trends in India.</p>
-
-              <div className="options-grid">
-                <div 
-                  className={`opt-card ${formData.foodHabit === "nonveg_heavy" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("foodHabit", "nonveg_heavy")}
-                >
-                  <div className="opt-indicator">{formData.foodHabit === "nonveg_heavy" && <Check size={12} />}</div>
-                  <h3>Non-Veg Heavy</h3>
-                  <span>Mutton, beef or pork regularly</span>
-                </div>
-                <div 
-                  className={`opt-card ${formData.foodHabit === "nonveg_light" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("foodHabit", "nonveg_light")}
-                >
-                  <div className="opt-indicator">{formData.foodHabit === "nonveg_light" && <Check size={12} />}</div>
-                  <h3>Non-Veg Light</h3>
-                  <span>Chicken or eggs only</span>
-                </div>
-                <div 
-                  className={`opt-card ${formData.foodHabit === "vegetarian" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("foodHabit", "vegetarian")}
-                >
-                  <div className="opt-indicator">{formData.foodHabit === "vegetarian" && <Check size={12} />}</div>
-                  <h3>Vegetarian</h3>
-                  <span>Dal, roti, paneer and dairy</span>
-                </div>
-                <div 
-                  className={`opt-card ${formData.foodHabit === "vegan" ? "active" : ""}`}
-                  onClick={() => handleSelectOption("foodHabit", "vegan")}
-                >
-                  <div className="opt-indicator">{formData.foodHabit === "vegan" && <Check size={12} />}</div>
-                  <h3>Vegan</h3>
-                  <span>Strictly plant-based meals</span>
-                </div>
-              </div>
-
-              <div className="step-footer">
-                <button className="btn btn-secondary" onClick={prevStep}>
-                  <ArrowLeft size={16} /> Back
-                </button>
-                <button className="btn btn-primary" onClick={nextStep}>
-                  Next Section <ArrowRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Shopping & Flights */}
-          {step === 4 && (
-            <div className="step-content">
-              <div className="step-icon"><ShoppingBag size={24} /></div>
-              <h2>Goods & Flight Travel</h2>
-              <p>Flight takeoffs represent heavy single-day carbon releases. Shopping frequency controls production supply chains.</p>
-
-              <div className="input-group">
-                <span className="input-label">Flight Travel Frequency (Domestic/Intl)</span>
-                <div className="options-grid horizontal">
-                  <div 
-                    className={`opt-card small ${formData.flightFrequency === "never" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("flightFrequency", "never")}
-                  >
-                    <h3>Rarely</h3>
-                  </div>
-                  <div 
-                    className={`opt-card small ${formData.flightFrequency === "occasional" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("flightFrequency", "occasional")}
-                  >
-                    <h3>Occasional</h3>
-                  </div>
-                  <div 
-                    className={`opt-card small ${formData.flightFrequency === "frequent" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("flightFrequency", "frequent")}
-                  >
-                    <h3>Frequent</h3>
-                  </div>
-                </div>
-              </div>
-
-              <div className="input-group">
-                <span className="input-label">Shopping behavior (goods, fashion)</span>
-                <div className="options-grid horizontal">
-                  <div 
-                    className={`opt-card small ${formData.shoppingHabits === "secondhand_minimal" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("shoppingHabits", "secondhand_minimal")}
-                  >
-                    <h3>Khadi/Eco</h3>
-                  </div>
-                  <div 
-                    className={`opt-card small ${formData.shoppingHabits === "moderate" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("shoppingHabits", "moderate")}
-                  >
-                    <h3>Moderate New</h3>
-                  </div>
-                  <div 
-                    className={`opt-card small ${formData.shoppingHabits === "frequent_new" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("shoppingHabits", "frequent_new")}
-                  >
-                    <h3>Frequent New</h3>
-                  </div>
-                </div>
-              </div>
-
-              <div className="step-footer">
-                <button className="btn btn-secondary" onClick={prevStep}>
-                  <ArrowLeft size={16} /> Back
-                </button>
-                <button className="btn btn-primary" onClick={nextStep}>
-                  Next Section <ArrowRight size={16} />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Energy & Household size */}
-          {step === 5 && (
-            <div className="step-content">
-              <div className="step-icon"><Home size={24} /></div>
-              <h2>Household Energy</h2>
-              <p>Indian electricity grids are heavily carbon-intensive due to thermal coal reliance. Your bill directly reflects grid pressure.</p>
-
-              <div className="grid-2-col">
-                <div className="input-group">
-                  <label htmlFor="energy-bill-input" className="input-label">Monthly Energy Bill (₹)</label>
-                  <input 
-                    id="energy-bill-input"
-                    type="number" 
-                    name="energyBill"
-                    min="200" 
-                    max="45000" 
-                    value={formData.energyBill}
-                    onChange={handleInputChange}
-                    className="input-field"
-                  />
-                </div>
-                
-                <div className="input-group">
-                  <label htmlFor="household-size-input" className="input-label">Household size (people)</label>
-                  <input 
-                    id="household-size-input"
-                    type="number" 
-                    name="householdSize"
-                    min="1" 
-                    max="15" 
-                    value={formData.householdSize}
-                    onChange={handleInputChange}
-                    className="input-field"
-                  />
-                </div>
-              </div>
-
-              <div className="input-group">
-                <span className="input-label">Primary Electricity Source</span>
-                <div className="options-grid horizontal">
-                  <div 
-                    className={`opt-card small ${formData.energySource === "coal_grid" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("energySource", "coal_grid")}
-                  >
-                    <h3>Default Coal Grid</h3>
-                  </div>
-                  <div 
-                    className={`opt-card small ${formData.energySource === "mixed_grid" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("energySource", "mixed_grid")}
-                  >
-                    <h3>Mixed Green Pool</h3>
-                  </div>
-                  <div 
-                    className={`opt-card small ${formData.energySource === "solar_roof" ? "active" : ""}`}
-                    onClick={() => handleSelectOption("energySource", "solar_roof")}
-                  >
-                    <h3>Rooftop Solar</h3>
-                  </div>
-                </div>
-              </div>
-
-              <div className="step-footer">
-                <button className="btn btn-secondary" onClick={prevStep}>
-                  <ArrowLeft size={16} /> Back
-                </button>
-                
-                <button 
-                  className="btn btn-primary btn-submit-onboarding" 
-                  onClick={handleSubmit}
-                  disabled={calculating}
-                >
-                  {calculating ? "Modeling Footprint..." : "Generate DNA"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Calculations & DNA Profile Reveal */}
-          {step === 6 && results && (
-            <div className="step-content reveal-step animate-float">
-              <div className="reveal-badge">
-                <Sparkles size={16} className="spark-reveal" />
-                <span>CARBON DNA PROFILE CREATED</span>
-              </div>
-              
-              <h2>Welcome to CarbonOS, {results.name}!</h2>
-              <p>Our algorithms have established your Indian baseline. Your Digital Carbon Twin is ready for activation.</p>
-
-              <div className="results-container">
-                <div className="score-reveal-block">
-                  <div className="reveal-score-circle">
-                    <span className="score-val">{results.score}</span>
-                    <span className="score-lbl">Carbon Score</span>
-                  </div>
-                  <span className="score-desc">
-                    {results.score > 75 
-                      ? "Excellent! Your footprint is far below urban average." 
-                      : results.score > 50 
-                        ? "Moderate output. Actionable swaps ahead." 
-                        : "High emissions profile. Time to optimize."}
-                  </span>
-                </div>
-
-                <div className="dna-percentages-block">
-                  <h3>Baseline Footprint Drivers</h3>
-                  
-                  <div className="percentage-list">
-                    <div className="perc-item">
-                      <span>🚗 Transportation</span>
-                      <div className="perc-bar-track"><div className="perc-bar-fill trans" style={{ width: `${results.breakdown.transportation}%` }}></div></div>
-                      <span className="perc-num">{results.breakdown.transportation}%</span>
-                    </div>
-                    <div className="perc-item">
-                      <span>🍔 Food & Deliveries</span>
-                      <div className="perc-bar-track"><div className="perc-bar-fill food" style={{ width: `${results.breakdown.food}%` }}></div></div>
-                      <span className="perc-num">{results.breakdown.food}%</span>
-                    </div>
-                    <div className="perc-item">
-                      <span>🛍️ Shopping goods</span>
-                      <div className="perc-bar-track"><div className="perc-bar-fill shop" style={{ width: `${results.breakdown.shopping}%` }}></div></div>
-                      <span className="perc-num">{results.breakdown.shopping}%</span>
-                    </div>
-                    <div className="perc-item">
-                      <span>⚡ Grid Electricity</span>
-                      <div className="perc-bar-track"><div className="perc-bar-fill energy" style={{ width: `${results.breakdown.energy}%` }}></div></div>
-                      <span className="perc-num">{results.breakdown.energy}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="reveal-footer">
-                <button className="btn btn-primary finish-btn" onClick={handleFinishOnboarding}>
-                  Boot Climate OS <ArrowRight size={18} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      </main>
 
       <style jsx>{`
-        .onboard-viewport {
-          position: relative;
+        .ob-page {
+          min-height: 100vh;
           background: #060907;
           color: #f2f7f4;
-          min-height: 100vh;
-          width: 100%;
+          font-family: var(--font-sans, system-ui, sans-serif);
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 2rem 1rem;
-          font-family: var(--font-sans);
+          position: relative;
           overflow: hidden;
         }
 
-        .onboard-radial-glow {
+        .ob-glow {
           position: absolute;
-          width: 600px;
-          height: 600px;
-          background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%);
-          filter: blur(100px);
+          width: 700px;
+          height: 700px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(16,185,129,0.13) 0%, transparent 70%);
+          filter: blur(80px);
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
           pointer-events: none;
         }
 
-        .onboard-container {
-          width: 100%;
-          max-width: 580px;
+        .ob-main {
+          position: relative;
           z-index: 10;
+          width: 100%;
+          max-width: 700px;
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
         }
 
-        .progress-bar-container {
-          margin-bottom: 1.5rem;
+        /* Header */
+        .ob-header {
+          text-align: center;
+        }
+
+        .ob-logo {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          color: #10b981;
+          font-weight: 700;
+          font-size: 1rem;
+          letter-spacing: 0.04em;
+          margin-bottom: 1rem;
+        }
+
+        .ob-title {
+          font-size: clamp(1.6rem, 4vw, 2.2rem);
+          font-weight: 800;
+          color: #ffffff;
+          margin: 0 0 0.6rem;
+          line-height: 1.2;
+        }
+
+        .ob-subtitle {
+          color: #8aab9e;
+          font-size: 0.95rem;
+          line-height: 1.6;
+          max-width: 500px;
+          margin: 0 auto;
+        }
+
+        /* Form card */
+        .ob-form,
+        .ob-results {
+          background: rgba(12, 18, 15, 0.88);
+          border: 1px solid rgba(16, 185, 129, 0.14);
+          border-radius: 24px;
+          padding: 2.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+          backdrop-filter: blur(12px);
+        }
+
+        .ob-divider {
+          height: 1px;
+          background: rgba(255,255,255,0.05);
+        }
+
+        .ob-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.25rem;
+        }
+
+        .ob-field {
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
         }
 
-        .progress-bar-track {
-          height: 4px;
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 99px;
-          overflow: hidden;
-        }
-
-        .progress-bar-fill {
-          height: 100%;
-          background: var(--brand-500);
-          border-radius: 99px;
-          transition: width 0.4s ease;
-        }
-
-        .progress-step-text {
-          font-size: 0.75rem;
-          color: var(--text-tertiary);
-          text-align: right;
-          font-family: var(--font-mono);
-        }
-
-        .onboard-card {
-          padding: 3rem;
-          border-radius: 24px;
-          background: rgba(12, 18, 15, 0.85);
-          border-color: rgba(16, 185, 129, 0.12);
-        }
-
-        .step-content {
-          display: flex;
-          flex-direction: column;
-          gap: 1.5rem;
-        }
-
-        .step-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 50px;
-          height: 50px;
-          border-radius: 14px;
-          background: var(--brand-glow);
-          color: var(--brand-500);
-        }
-
-        .step-content h2 {
-          font-size: 1.85rem;
-          color: white;
-        }
-
-        .step-content p {
+        .ob-label {
+          font-size: 0.82rem;
+          font-weight: 600;
           color: #a3b8ae;
-          font-size: 0.95rem;
-          line-height: 1.5;
-        }
-
-        .name-input {
-          font-size: 1.1rem;
-          padding: 1rem 1.25rem;
-        }
-
-        .options-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-
-        .options-grid.horizontal {
-          grid-template-columns: 1fr 1fr 1fr;
-        }
-
-        .opt-card {
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid var(--border-color);
-          border-radius: 16px;
-          padding: 1.25rem;
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          position: relative;
-        }
-
-        .opt-card:hover {
-          background: rgba(16, 185, 129, 0.04);
-          border-color: var(--brand-400);
-        }
-
-        .opt-card.active {
-          background: var(--brand-glow);
-          border-color: var(--brand-500);
-          box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
-        }
-
-        .opt-card.small {
-          padding: 0.75rem;
-          text-align: center;
-        }
-
-        .opt-card.small h3 {
-          font-size: 0.85rem;
-        }
-
-        .opt-indicator {
-          position: absolute;
-          top: 0.75rem;
-          right: 0.75rem;
-          width: 18px;
-          height: 18px;
-          border-radius: 99px;
-          border: 1px solid var(--border-color);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(0, 0, 0, 0.2);
-        }
-
-        .opt-card.active .opt-indicator {
-          background: var(--brand-500);
-          border-color: var(--brand-500);
-          color: white;
-        }
-
-        .opt-card h3 {
-          font-size: 1.05rem;
-          color: white;
-          margin-bottom: 0.25rem;
-        }
-
-        .opt-card span {
-          font-size: 0.75rem;
-          color: var(--text-tertiary);
-        }
-
-        .slider-input {
-          -webkit-appearance: none;
-          width: 100%;
-          height: 6px;
-          border-radius: 5px;
-          background: rgba(255, 255, 255, 0.08);
-          outline: none;
-        }
-
-        .slider-input::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          border-radius: 99px;
-          background: var(--brand-500);
-          cursor: pointer;
-          box-shadow: 0 0 10px var(--brand-glow);
-        }
-
-        .grid-2-col {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-        }
-
-        .step-footer {
-          display: flex;
-          justify-content: space-between;
-          margin-top: 1.5rem;
-          border-top: 1px solid rgba(255,255,255,0.05);
-          padding-top: 1.5rem;
-        }
-
-        /* Results reveal screen */
-        .reveal-step {
-          align-items: center;
-          text-align: center;
-        }
-
-        .reveal-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-          background: var(--brand-glow);
-          border: 1px solid var(--border-color);
-          color: var(--brand-400);
-          padding: 0.35rem 0.85rem;
-          border-radius: 99px;
-          font-size: 0.75rem;
-          font-weight: 700;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.03em;
           text-transform: uppercase;
         }
 
-        :global(.spark-reveal) {
-          color: var(--brand-400);
-        }
-
-        .results-container {
-          display: grid;
-          grid-template-columns: 1fr 1.3fr;
-          gap: 2rem;
+        .ob-input,
+        .ob-select {
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.09);
+          border-radius: 12px;
+          color: #f2f7f4;
+          font-size: 0.95rem;
+          padding: 0.75rem 1rem;
+          outline: none;
           width: 100%;
-          text-align: left;
-          margin-top: 1rem;
-          background: rgba(255, 255, 255, 0.01);
-          border: 1px solid rgba(255, 255, 255, 0.03);
-          border-radius: 20px;
-          padding: 1.5rem;
+          transition: border-color 0.2s;
         }
 
-        .score-reveal-block {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          border-right: 1px solid rgba(255, 255, 255, 0.05);
-          padding-right: 1.5rem;
-          text-align: center;
+        .ob-select {
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238aab9e' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 1rem center;
+          padding-right: 2.5rem;
         }
 
-        .reveal-score-circle {
-          width: 110px;
-          height: 110px;
+        .ob-input:focus,
+        .ob-select:focus {
+          border-color: #10b981;
+          box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
+        }
+
+        .ob-input::placeholder {
+          color: #4a5e57;
+        }
+
+        .ob-select option {
+          background: #0c120f;
+        }
+
+        /* Range slider */
+        .ob-range {
+          -webkit-appearance: none;
+          width: 100%;
+          height: 6px;
           border-radius: 99px;
-          border: 6px solid var(--brand-500);
+          background: rgba(255,255,255,0.08);
+          outline: none;
+          cursor: pointer;
+          margin-top: 0.35rem;
+        }
+
+        .ob-range::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: #10b981;
+          cursor: pointer;
+          box-shadow: 0 0 8px rgba(16,185,129,0.5);
+        }
+
+        /* Error */
+        .ob-error {
+          font-size: 0.8rem;
+          color: #f87171;
+          margin-top: 0.25rem;
+        }
+
+        /* Submit */
+        .ob-submit {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.6rem;
+          background: #10b981;
+          color: #050d09;
+          font-weight: 700;
+          font-size: 1rem;
+          border: none;
+          border-radius: 14px;
+          padding: 0.9rem 1.5rem;
+          cursor: pointer;
+          width: 100%;
+          transition: background 0.2s, box-shadow 0.2s;
+          margin-top: 0.5rem;
+        }
+
+        .ob-submit:hover {
+          background: #0ea271;
+          box-shadow: 0 0 20px rgba(16,185,129,0.3);
+        }
+
+        .ob-submit:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .ob-submit:focus-visible {
+          outline: 2px solid #10b981;
+          outline-offset: 2px;
+        }
+
+        /* Spinner */
+        .ob-spinner {
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          border: 2px solid rgba(0,0,0,0.3);
+          border-top-color: #050d09;
+          border-radius: 50%;
+          animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        /* Results */
+        .ob-results-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          background: rgba(16,185,129,0.1);
+          border: 1px solid rgba(16,185,129,0.2);
+          color: #10b981;
+          padding: 0.3rem 0.9rem;
+          border-radius: 99px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          align-self: flex-start;
+        }
+
+        .ob-results-title {
+          font-size: 1.8rem;
+          font-weight: 800;
+          color: #ffffff;
+          margin: 0;
+        }
+
+        .ob-results-sub {
+          color: #8aab9e;
+          font-size: 0.9rem;
+          margin: 0;
+        }
+
+        .ob-score-row {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 16px;
+          padding: 1.25rem;
+        }
+
+        .ob-score-circle {
+          width: 90px;
+          height: 90px;
+          border-radius: 50%;
+          border: 5px solid #10b981;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 0 25px var(--brand-glow);
-          margin-bottom: 1rem;
+          flex-shrink: 0;
+          box-shadow: 0 0 20px rgba(16,185,129,0.2);
         }
 
-        .score-val {
-          font-size: 2.25rem;
+        .ob-score-num {
+          font-size: 2rem;
           font-weight: 800;
-          color: white;
-          font-family: var(--font-display);
+          color: #fff;
+          line-height: 1;
         }
 
-        .score-desc {
-          font-size: 0.8rem;
-          color: #a3b8ae;
-          font-weight: 500;
+        .ob-score-lbl {
+          font-size: 0.7rem;
+          color: #8aab9e;
         }
 
-        .dna-percentages-block h3 {
-          font-size: 1rem;
-          color: white;
-          margin-bottom: 1rem;
+        .ob-score-desc p {
+          font-size: 0.95rem;
+          color: #c1d9d0;
+          line-height: 1.5;
+          margin: 0;
         }
 
-        .percentage-list {
+        .ob-bars {
           display: flex;
           flex-direction: column;
           gap: 0.75rem;
         }
 
-        .perc-item {
+        .ob-bar-row {
           display: grid;
-          grid-template-columns: 130px 1fr 40px;
+          grid-template-columns: 110px 1fr 40px;
           align-items: center;
-          gap: 0.5rem;
-          font-size: 0.8rem;
+          gap: 0.75rem;
+          font-size: 0.82rem;
         }
 
-        .perc-bar-track {
-          height: 5px;
-          background: rgba(255, 255, 255, 0.05);
+        .ob-bar-label {
+          color: #a3b8ae;
+        }
+
+        .ob-bar-track {
+          height: 6px;
+          background: rgba(255,255,255,0.06);
           border-radius: 99px;
+          overflow: hidden;
         }
 
-        .perc-bar-fill {
+        .ob-bar-fill {
           height: 100%;
           border-radius: 99px;
+          transition: width 0.6s ease;
         }
-        .perc-bar-fill.trans { background: var(--brand-500); }
-        .perc-bar-fill.food { background: var(--brand-400); }
-        .perc-bar-fill.shop { background: var(--purple-500); }
-        .perc-bar-fill.energy { background: var(--blue-500); }
 
-        .perc-num {
+        .bar-trans { background: #10b981; }
+        .bar-food  { background: #34d399; }
+        .bar-shop  { background: #a78bfa; }
+        .bar-energy { background: #60a5fa; }
+
+        .ob-bar-pct {
           text-align: right;
+          color: #c1d9d0;
           font-weight: 600;
-          color: var(--text-secondary);
-        }
-
-        .reveal-footer {
-          width: 100%;
-          margin-top: 1rem;
-        }
-
-        .finish-btn {
-          width: 100%;
-          padding: 0.9rem;
-          font-size: 1.1rem;
+          font-size: 0.8rem;
         }
 
         /* Responsive */
         @media (max-width: 600px) {
-          .onboard-card {
-            padding: 1.5rem;
-          }
-          .options-grid {
-            grid-template-columns: 1fr;
-          }
-          .options-grid.horizontal {
-            grid-template-columns: 1fr;
-          }
-          .results-container {
-            grid-template-columns: 1fr;
-          }
-          .score-reveal-block {
-            border-right: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-right: 0;
-            padding-bottom: 1.5rem;
-          }
-          .grid-2-col {
-            grid-template-columns: 1fr;
-          }
+          .ob-form,
+          .ob-results { padding: 1.5rem; }
+
+          .ob-row { grid-template-columns: 1fr; }
+
+          .ob-score-row { flex-direction: column; text-align: center; }
+
+          .ob-bar-row { grid-template-columns: 90px 1fr 36px; }
         }
       `}</style>
     </div>
