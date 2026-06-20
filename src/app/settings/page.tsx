@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
 import { UserProfile, defaultProfile } from "@/lib/mockAi";
+import { syncProfileToFirebase } from "@/lib/firebase";
 import { 
   Settings as SettingsIcon, 
   Key, 
@@ -42,7 +43,7 @@ export default function Settings() {
     setMapsKey(savedMaps);
   }, []);
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Save API keys to local storage
@@ -58,6 +59,7 @@ export default function Settings() {
     };
     setProfile(updated);
     localStorage.setItem("carbonos-profile", JSON.stringify(updated));
+    await syncProfileToFirebase(updated);
 
     setSavedStatus("Console parameters saved successfully!");
     setTimeout(() => setSavedStatus(null), 3000);

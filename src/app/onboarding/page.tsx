@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Leaf, Sparkles, ArrowRight } from "lucide-react";
 import { calculateCarbonDNA } from "@/lib/mockAi";
+import { syncProfileToFirebase } from "@/lib/firebase";
 
 const transportOptions = [
   { value: "petrol_car", label: "🚗 Petrol / Diesel Car" },
@@ -91,9 +92,10 @@ export default function Onboarding() {
     }, 1500);
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (results) {
       localStorage.setItem("carbonos-profile", JSON.stringify(results));
+      await syncProfileToFirebase(results);
       router.push("/dashboard");
     }
   };
