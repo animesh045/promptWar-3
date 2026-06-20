@@ -56,6 +56,21 @@ export default function Onboarding() {
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState("");
 
+  const handleAutofill = () => {
+    setFormData({
+      name: "Riya Sharma",
+      transportation: "ola_scooter",
+      commuteMiles: 12,
+      foodHabit: "vegetarian",
+      shoppingHabits: "moderate",
+      flightFrequency: "occasional",
+      energyBill: 1500,
+      energySource: "mixed_grid",
+      householdSize: 3,
+    });
+    setError("");
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -293,23 +308,40 @@ export default function Onboarding() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="ob-submit"
-              disabled={calculating}
-              aria-busy={calculating}
-              aria-label="Generate your Carbon DNA profile"
-            >
-              {calculating ? (
-                <>
-                  <span className="ob-spinner" aria-hidden="true" /> Calculating...
-                </>
-              ) : (
-                <>
-                  Generate Carbon DNA <ArrowRight size={18} aria-hidden="true" />
-                </>
-              )}
-            </button>
+            <div style={{ display: "flex", gap: "12px", width: "100%", marginTop: "1rem" }}>
+              <button
+                type="button"
+                className="ob-submit"
+                onClick={handleAutofill}
+                style={{
+                  flex: 1,
+                  background: "transparent",
+                  border: "1px solid rgba(16, 185, 129, 0.4)",
+                  color: "#10b981"
+                }}
+                aria-label="Autofill a demo carbon profile"
+              >
+                Autofill Demo DNA
+              </button>
+              <button
+                type="submit"
+                className="ob-submit"
+                disabled={calculating}
+                style={{ flex: 2, margin: 0 }}
+                aria-busy={calculating}
+                aria-label="Generate your Carbon DNA profile"
+              >
+                {calculating ? (
+                  <>
+                    <span className="ob-spinner" aria-hidden="true" /> Calculating...
+                  </>
+                ) : (
+                  <>
+                    Generate Carbon DNA <ArrowRight size={18} aria-hidden="true" />
+                  </>
+                )}
+              </button>
+            </div>
           </form>
         ) : (
           /* Results */
